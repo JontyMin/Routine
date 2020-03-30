@@ -40,7 +40,11 @@ namespace Routine.Api
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             services.AddScoped<ICompanyRepository, CompanyRepository>();
-            services.AddDbContext<RoutineDbContext>(options => { options.UseSqlite("Data Source=routine.db"); });
+            services.AddDbContext<RoutineDbContext>(options =>
+            {
+                options.UseSqlite("Data Source=routine.db");
+                //options.UseSqlServer("server=.;database=RoutineDb;uid=sa;pwd=123;");
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
