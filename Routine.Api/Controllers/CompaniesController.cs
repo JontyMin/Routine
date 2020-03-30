@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Routine.Api.Models;
 using Routine.Api.Services;
 
 namespace Routine.Api.Controllers
@@ -14,17 +16,22 @@ namespace Routine.Api.Controllers
     public class CompaniesController : ControllerBase
     {
         private readonly ICompanyRepository _companyRepository;
+        private readonly IMapper _mapper;
 
-        public CompaniesController(ICompanyRepository companyRepository)
+        public CompaniesController(ICompanyRepository companyRepository,IMapper mapper)
         {
             _companyRepository = companyRepository ?? throw new ArgumentNullException(nameof(companyRepository));
+            _mapper= mapper  ?? throw new ArgumentNullException(nameof(mapper));
+            
+
         }
 
         [HttpGet]
         public async Task<IActionResult> GetCompanies()
         {
             var companies = await _companyRepository.GetCompaniesAsync();
-            return Ok(companies);
+            var companyDtos = _mapper.Map<IEnumerable<CompanyDto>>(companies);
+            return Ok(companyDtos);
         }
 
         [HttpGet("{companyId}")]
@@ -43,7 +50,7 @@ namespace Routine.Api.Controllers
             {
                 return NotFound();
             }
-            return Ok(company);
+            return Ok(_mapper.Map<CompanyDto>(company));
         }
     }
 }
