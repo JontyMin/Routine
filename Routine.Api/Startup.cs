@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,7 +28,13 @@ namespace Routine.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers(setup =>
+            {
+                //添加xml格式数据
+                setup.ReturnHttpNotAcceptable = true;
+                //setup.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+                //setup.OutputFormatters.Insert(0,new XmlDataContractSerializerOutputFormatter());
+            }).AddXmlDataContractSerializerFormatters();
             services.AddScoped<ICompanyRepository, CompanyRepository>();
             services.AddDbContext<RoutineDbContext>(options => { options.UseSqlite("Data Source=routine.db"); });
         }
@@ -39,6 +46,8 @@ namespace Routine.Api
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseCors();
 
             app.UseRouting();
 

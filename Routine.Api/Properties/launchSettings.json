@@ -1,11 +1,11 @@
 ﻿{
   "$schema": "http://json.schemastore.org/launchsettings.json",
   "profiles": {
-	  "Routine.Api": {
+    "Routine.Api": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "weatherforecast",
-      "applicationUrl": "http://localhost:5000",
+      "launchUrl": "api/Companies",
+      "applicationUrl": "http://localhost:7151",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
