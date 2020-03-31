@@ -27,6 +27,7 @@ namespace Routine.Api.Controllers
         }
 
         [HttpGet]
+        [HttpHead]
         public async Task<IActionResult> GetCompanies()
         {
             //throw new Exception("An Exception");
