@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Routine.Api.Data;
 using Routine.Api.Entities;
+using Routine.Api.ResourceParameters;
 
 namespace Routine.Api.Services
 {
@@ -18,9 +19,35 @@ namespace Routine.Api.Services
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
-        public async Task<IEnumerable<Company>> GetCompaniesAsync()
+        public async Task<IEnumerable<Company>> GetCompaniesAsync(CompanyDtoParameters companyDtoParameters)
         {
-            return await _context.Companies.ToListAsync();
+            if (companyDtoParameters == null)
+            {
+                throw new ArgumentNullException(nameof(companyDtoParameters));
+            }
+
+            if (string.IsNullOrWhiteSpace(companyDtoParameters.CompanyName) &&
+                string.IsNullOrWhiteSpace(companyDtoParameters.SearchTerm))
+            {
+                return await _context.Companies.ToListAsync();
+            }
+
+            var queryExpression = _context.Companies as IQueryable<Company>;
+            if (!string.IsNullOrWhiteSpace(companyDtoParameters.CompanyName))
+            {
+                companyDtoParameters.CompanyName = companyDtoParameters.CompanyName.Trim();
+                queryExpression = queryExpression.Where(x =>
+                    x.Name.Contains(companyDtoParameters.CompanyName));
+            }
+            if (!string.IsNullOrWhiteSpace(companyDtoParameters.SearchTerm))
+            {
+                companyDtoParameters.SearchTerm = companyDtoParameters.SearchTerm.Trim();
+                queryExpression = queryExpression.Where(x =>
+                    x.Name.Contains(companyDtoParameters.SearchTerm) ||
+                    x.Introduction.Contains(companyDtoParameters.SearchTerm));
+            }
+
+            return await queryExpression.ToListAsync();
         }
 
         public async Task<Company> GetCompanyAsync(Guid companyId)

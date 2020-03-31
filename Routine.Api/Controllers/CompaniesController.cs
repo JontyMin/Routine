@@ -7,6 +7,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Routine.Api.Models;
+using Routine.Api.ResourceParameters;
 using Routine.Api.Services;
 
 namespace Routine.Api.Controllers
@@ -28,14 +29,15 @@ namespace Routine.Api.Controllers
 
         [HttpGet]
         [HttpHead]
-        public async Task<IActionResult> GetCompanies()
+        public async Task<IActionResult> GetCompanies([FromQuery]CompanyDtoParameters company)
         {
             //throw new Exception("An Exception");
 
-            var companies = await _companyRepository.GetCompaniesAsync();
+            var companies = await _companyRepository.GetCompaniesAsync(company);
             var companyDtos = _mapper.Map<IEnumerable<CompanyDto>>(companies);
             return Ok(companyDtos);
         }
+
 
         [HttpGet("{companyId}")]
         public async Task<IActionResult> GetCompany(Guid companyId)
