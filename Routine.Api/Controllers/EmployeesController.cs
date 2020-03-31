@@ -24,17 +24,20 @@ namespace Routine.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetEmployeesForCompany(Guid companyId)
+        public async Task<ActionResult<IEnumerable<EmployeeDto>>> 
+            GetEmployeesForCompany(Guid companyId,[FromQuery(Name="gender")]string genderDisplay,string q)
         {
             if (!await _companyRepository.CompanyExistsAsync(companyId))
             {
                 return NotFound();
             }
 
-            var employees = await _companyRepository.GetEmployeeAsync(companyId);
+            var employees = await _companyRepository.GetEmployeeAsync(companyId,genderDisplay,q);
             var employeesDto = _mapper.Map<IEnumerable<EmployeeDto>>(employees);
             return Ok(employeesDto);
         }
+
+
         [HttpGet("{employeesId}")]
         public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetEmployeeForCompany(Guid companyId,Guid employeesId)
         {

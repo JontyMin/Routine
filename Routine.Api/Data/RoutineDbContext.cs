@@ -106,6 +106,24 @@ namespace Routine.Api.Data
                         FirstName = "alice",
                         LastName = "Wang",
                         Gender = Gender.女
+                    }, new Employee
+                    {
+                        Id = Guid.Parse("cf58b318-4c49-4f7a-bfaa-5227a1e48afd"),
+                        CompanyId = Guid.Parse("7dcaf47b-bc1a-4b78-ae5c-ebf952ecf1eb"),
+                        DateOfBirth = new DateTime(2001, 5, 21),
+                        EmployeeNo = "11324",
+                        FirstName = "alice",
+                        LastName = "jonty",
+                        Gender = Gender.男
+                    }, new Employee
+                    {
+                        Id = Guid.Parse("8b320533-67e5-4db6-bf3d-d87a24311d25"),
+                        CompanyId = Guid.Parse("7dcaf47b-bc1a-4b78-ae5c-ebf952ecf1eb"),
+                        DateOfBirth = new DateTime(2000, 7, 21),
+                        EmployeeNo = "34521",
+                        FirstName = "alice",
+                        LastName = "wang",
+                        Gender = Gender.女
                     });
         }
     }

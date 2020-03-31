@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
@@ -85,17 +86,43 @@ namespace Routine.Api.Services
             return await _context.Companies.AnyAsync(x => x.Id == companyId);
         }
 
-        public async Task<IEnumerable<Employee>> GetEmployeeAsync(Guid companyId)
+        public async Task<IEnumerable<Employee>> GetEmployeeAsync(Guid companyId,string genderDisplay,string q)
         {
             if (companyId==Guid.Empty)
             {
                 throw new ArgumentNullException(nameof(companyId));
             }
 
-            return await _context.Employees
-                .Where(x => x.CompanyId == companyId)
-                .OrderBy(x => x.EmployeeNo)
-                .ToListAsync();
+            if (string.IsNullOrWhiteSpace(genderDisplay) && string.IsNullOrEmpty(q))
+            {
+                return await _context.Employees
+                    .Where(x => x.CompanyId == companyId)
+                    .OrderBy(x => x.EmployeeNo)
+                    .ToListAsync();
+            }
+
+            var items = _context.Employees.Where(x => x.CompanyId == companyId);
+
+            if (!string.IsNullOrWhiteSpace(genderDisplay))
+            {
+                genderDisplay = genderDisplay.Trim();
+                var gender = Enum.Parse<Gender>(genderDisplay);
+
+                items = items.Where(x => x.Gender == gender);
+               
+            }
+
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                q = q.Trim();
+                items = items.Where(x => x.EmployeeNo.Contains(q)
+                                         || x.FirstName.Contains(q)
+                                         || x.LastName.Contains(q));
+
+            }
+
+            return await items.OrderBy(x => x.EmployeeNo).ToListAsync();
+
         }
 
         public async Task<Employee> GetEmployeeAsync(Guid companyId, Guid employeeId)
