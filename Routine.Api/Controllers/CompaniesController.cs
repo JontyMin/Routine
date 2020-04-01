@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Routine.Api.Entities;
 using Routine.Api.Models;
 using Routine.Api.ResourceParameters;
 using Routine.Api.Services;
@@ -39,7 +41,7 @@ namespace Routine.Api.Controllers
         }
 
 
-        [HttpGet("{companyId}")]
+        [HttpGet("{companyId}",Name = nameof(GetCompany))]
         public async Task<IActionResult> GetCompany(Guid companyId)
         {
             //判断是否存在
@@ -56,6 +58,18 @@ namespace Routine.Api.Controllers
                 return NotFound();
             }
             return Ok(_mapper.Map<CompanyDto>(company));
+        }
+
+        [HttpPost ]
+        public async Task<ActionResult<CompanyDto>> CreateCompany([FromBody]CompanyAddDto company)
+        {
+            var entity = _mapper.Map<Company>(company);
+            _companyRepository.AddCompany(entity);
+            await _companyRepository.SaveAsync();
+
+            var retuenDto = _mapper.Map<CompanyDto>(entity);
+
+            return CreatedAtRoute(nameof(GetCompany), new {companyId = retuenDto.Id}, retuenDto);
         }
     }
 }
