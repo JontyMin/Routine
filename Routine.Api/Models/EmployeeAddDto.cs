@@ -1,16 +1,14 @@
 ﻿using System;
+using Routine.Api.Entities;
 
-namespace Routine.Api.Entities
+namespace Routine.Api.Models
 {
-    public class Employee
+    public class EmployeeAddDto
     {
-        public Guid Id { get; set; }
-        public Guid CompanyId { get; set; }
         public string EmployeeNo { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public Gender Gender { get; set; }
         public DateTime DateOfBirth { get; set; }
-        public Company Company { get; set; }
     }
 }
