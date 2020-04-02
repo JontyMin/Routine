@@ -8,6 +8,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Routine.Api.Entities;
+using Routine.Api.Helpers;
 using Routine.Api.Models;
 using Routine.Api.ResourceParameters;
 using Routine.Api.Services;
@@ -29,6 +30,11 @@ namespace Routine.Api.Controllers
 
         }
 
+        /// <summary>
+        /// 获取所有公司
+        /// </summary>
+        /// <param name="company"></param>
+        /// <returns></returns>
         [HttpGet]
         [HttpHead]
         public async Task<IActionResult> GetCompanies([FromQuery]CompanyDtoParameters company)
@@ -40,7 +46,11 @@ namespace Routine.Api.Controllers
             return Ok(companyDtos);
         }
 
-
+        /// <summary>
+        /// 根据id查询公司
+        /// </summary>
+        /// <param name="companyId"></param>
+        /// <returns></returns>
         [HttpGet("{companyId}",Name = nameof(GetCompany))]
         public async Task<IActionResult> GetCompany(Guid companyId)
         {
@@ -60,7 +70,12 @@ namespace Routine.Api.Controllers
             return Ok(_mapper.Map<CompanyDto>(company));
         }
 
-        [HttpPost ]
+        /// <summary>
+        /// 创建公司
+        /// </summary>
+        /// <param name="company"></param>
+        /// <returns></returns>
+        [HttpPost]
         public async Task<ActionResult<CompanyDto>> CreateCompany([FromBody]CompanyAddDto company)
         {
             var entity = _mapper.Map<Company>(company);
@@ -68,8 +83,53 @@ namespace Routine.Api.Controllers
             await _companyRepository.SaveAsync();
 
             var retuenDto = _mapper.Map<CompanyDto>(entity);
-
+            
+            //返回一个路径，获取当前添加的资源
             return CreatedAtRoute(nameof(GetCompany), new {companyId = retuenDto.Id}, retuenDto);
+        }
+
+
+        /// <summary>
+        /// 创建资源集合
+        /// </summary>
+        /// <param name="companyCollection"></param>
+        /// <returns></returns>
+        [HttpPost("CreateCompanyCollection")]
+        public async Task<ActionResult<IEnumerable<CompanyDto>>>
+            CreateCompanyCollection(IEnumerable<CompanyAddDto> companyCollection)
+        {
+            var companyEntities = _mapper.Map<IEnumerable<Company>>(companyCollection);
+            foreach (var company in companyEntities)
+            {
+                _companyRepository.AddCompany(company);
+            }
+
+            await _companyRepository.SaveAsync();
+            //return CreatedAtRoute();
+            var dtosToReturn = _mapper.Map<IEnumerable<CompanyDto>>(companyEntities);
+            var idsString = string.Join(",", dtosToReturn.Select(x => x.Id));
+            return CreatedAtRoute(nameof(GetCompanyCollection), new {ids = idsString}, dtosToReturn);
+        }
+
+        [HttpGet("({ids})",Name = nameof(GetCompanyCollection))]
+        public async Task<IActionResult> GetCompanyCollection(
+            [FromRoute]
+            [ModelBinder(BinderType = typeof(ArrayModelBinder))]
+            IEnumerable<Guid> ids)
+        {
+            if (ids==null)
+            {
+                return BadRequest();
+            }
+
+            var entities = await _companyRepository.GetCompaniesAsync(ids);
+            if (ids.Count() != entities.Count())
+            {
+                return NotFound();
+            }
+
+            var dtoToReturn = _mapper.Map<IEnumerable<CompanyDto>>(entities);
+            return Ok(dtoToReturn);
         }
     }
 }

@@ -24,6 +24,13 @@ namespace Routine.Api.Controllers
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
+        /// <summary>
+        /// 查询
+        /// </summary>
+        /// <param name="companyId"></param>
+        /// <param name="genderDisplay"></param>
+        /// <param name="q"></param>
+        /// <returns></returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EmployeeDto>>> 
             GetEmployeesForCompany(Guid companyId,[FromQuery(Name="gender")]string genderDisplay,string q)
@@ -38,7 +45,12 @@ namespace Routine.Api.Controllers
             return Ok(employeesDto);
         }
 
-
+        /// <summary>
+        /// 根据公司获取员工
+        /// </summary>
+        /// <param name="companyId"></param>
+        /// <param name="employeeId"></param>
+        /// <returns></returns>
         [HttpGet("{employeeId}",Name=nameof(GetEmployeeForCompany))]
         public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetEmployeeForCompany(Guid companyId,Guid employeeId)
         {
@@ -57,6 +69,13 @@ namespace Routine.Api.Controllers
             var employeesDto = _mapper.Map<EmployeeDto>(employees);
             return Ok(employeesDto);
         }
+
+        /// <summary>
+        /// 根据公司创建员工
+        /// </summary>
+        /// <param name="companyId"></param>
+        /// <param name="employee"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<ActionResult<EmployeeDto>> 
             CreateEmployeeForCompany(Guid companyId,EmployeeAddDto employee)
