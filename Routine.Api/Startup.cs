@@ -37,6 +37,7 @@ namespace Routine.Api
                 //setup.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
                 //setup.OutputFormatters.Insert(0,new XmlDataContractSerializerOutputFormatter());
             }).AddXmlDataContractSerializerFormatters();
+            //支持格式更多 AddXmlDataContractSerializerFormatters
 
             //autoMapper
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

@@ -37,7 +37,8 @@ namespace Routine.Api.Controllers
         /// <returns></returns>
         [HttpGet]
         [HttpHead]
-        public async Task<IActionResult> GetCompanies([FromQuery]CompanyDtoParameters company)
+        public async Task<IActionResult> GetCompanies(
+            [FromQuery]CompanyDtoParameters company)
         {
             //throw new Exception("An Exception");
 
@@ -78,6 +79,8 @@ namespace Routine.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<CompanyDto>> CreateCompany([FromBody]CompanyAddDto company)
         {
+            //xml格式 Introduction null
+            //把Introduction 放在Name字段前可识别
             var entity = _mapper.Map<Company>(company);
             _companyRepository.AddCompany(entity);
             await _companyRepository.SaveAsync();
@@ -111,6 +114,7 @@ namespace Routine.Api.Controllers
             return CreatedAtRoute(nameof(GetCompanyCollection), new {ids = idsString}, dtosToReturn);
         }
 
+
         [HttpGet("({ids})",Name = nameof(GetCompanyCollection))]
         public async Task<IActionResult> GetCompanyCollection(
             [FromRoute]
@@ -130,6 +134,18 @@ namespace Routine.Api.Controllers
 
             var dtoToReturn = _mapper.Map<IEnumerable<CompanyDto>>(entities);
             return Ok(dtoToReturn);
+        }
+
+
+        /// <summary>
+        /// option请求 获取api的通信信息
+        /// </summary>
+        /// <returns></returns>
+        [HttpOptions]
+        public IActionResult GetCompaniesOptions()
+        {
+            Response.Headers.Add("Allow","GET,POST,OPTIONS");
+            return Ok();
         }
     }
 }
