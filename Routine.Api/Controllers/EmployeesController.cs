@@ -98,5 +98,47 @@ namespace Routine.Api.Controllers
                 employeeId = dtoToReturn.Id
             }, dtoToReturn);
         }
+
+        /// <summary>
+        /// 整体更新
+        /// </summary>
+        /// <param name="companyId">公司ID</param>
+        /// <param name="employeeId">员工ID</param>
+        /// <param name="employee">更新信息</param>
+        /// <returns></returns>
+        [HttpPut("{employeeId}")]
+        public async Task<IActionResult> UpdateEmployeeForCompany(
+            Guid companyId, 
+            Guid employeeId,
+            EmployeeUpdateDto employee
+            )
+        {
+            //判断该员工是否存在
+            if (!await _companyRepository.CompanyExistsAsync(companyId))
+            {
+                return NotFound();
+            }
+
+            var employeeEntity = await _companyRepository.GetEmployeeAsync(companyId, employeeId);
+            
+            //该公司没有这个员工
+            if (employeeEntity==null)
+            {
+                return NotFound();
+            }
+
+            //entity 转化为 updateDto
+            //把传进来的employee的值更新到updateDto
+            //把updateDto映射回entity
+
+            _mapper.Map(employee, employeeEntity);
+
+            _companyRepository.UpdateEmployee(employeeEntity);
+
+            await _companyRepository.SaveAsync();
+
+            return NoContent();
+
+        }
     }
 }
