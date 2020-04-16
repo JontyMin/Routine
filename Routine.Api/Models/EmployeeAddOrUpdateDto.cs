@@ -9,23 +9,23 @@ namespace Routine.Api.Models
 {
     public  abstract class EmployeeAddOrUpdateDto: IValidatableObject
     {
-        [Display(Name = "员工号")]
-        [Required(ErrorMessage = "{0}是必填项")]
-        [StringLength(5, MinimumLength = 5, ErrorMessage = "{0}的长度是{1}")]
+        //[Display(Name = "员工号")]
+        //[Required(ErrorMessage = "{0}是必填项")]
+        //[StringLength(5, MinimumLength = 5, ErrorMessage = "{0}的长度是{1}")]
         public string EmployeeNo { get; set; }
 
-        [Display(Name = "名")]
-        [Required(ErrorMessage = "{0}是必填项")]
-        [MaxLength(50, ErrorMessage = "{0}的长度不能超过{1}")]
+        //[Display(Name = "名")]
+        //[Required(ErrorMessage = "{0}是必填项")]
+        //[MaxLength(50, ErrorMessage = "{0}的长度不能超过{1}")]
         public string FirstName { get; set; }
 
-        [Display(Name = "姓"), Required(ErrorMessage = "{0}是必填项"), MaxLength(50, ErrorMessage = "{0}的长度不能超过{1}")]
+        //[Display(Name = "姓"), Required(ErrorMessage = "{0}是必填项"), MaxLength(50, ErrorMessage = "{0}的长度不能超过{1}")]
         public string LastName { get; set; }
 
-        [Display(Name = "性别")]
+        //[Display(Name = "性别")]
         public Gender Gender { get; set; }
 
-        [Display(Name = "出生日期")]
+        //[Display(Name = "出生日期")]
         public DateTime DateOfBirth { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)

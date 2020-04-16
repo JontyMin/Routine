@@ -170,7 +170,27 @@ namespace Routine.Api.Controllers
             //该公司没有这个员工
             if (employeeEntity == null)
             {
-                return NotFound();
+                var employeeDto = new EmployeeUpdateDto();
+                patchDocument.ApplyTo(employeeDto,ModelState);
+
+                if (!TryValidateModel(employeeDto))
+                {
+                    return ValidationProblem(ModelState);
+                }
+
+                var employeeToAdd = _mapper.Map<Employee>(employeeDto);
+                employeeToAdd.Id = employeeId;
+
+                _companyRepository.AddEmployee(companyId,employeeToAdd);
+                await _companyRepository.SaveAsync();
+
+                var dtoToReturn = _mapper.Map<EmployeeDto>(employeeToAdd);
+
+                return CreatedAtRoute(nameof(GetEmployeeForCompany), new
+                {
+                    companyId,
+                    employeeId = dtoToReturn.Id
+                }, dtoToReturn);
             }
 
             var dtoToPatch = _mapper.Map<EmployeeUpdateDto>(employeeEntity);
@@ -183,14 +203,41 @@ namespace Routine.Api.Controllers
                 return UnprocessableEntity(ModelState);
             }
 
-           
-
             _mapper.Map(dtoToPatch, employeeEntity);
 
             _companyRepository.UpdateEmployee(employeeEntity);
 
             await _companyRepository.SaveAsync();
 
+            return NoContent();
+        }
+
+        /// <summary>
+        /// 删除资源
+        /// </summary>
+        /// <param name="companyId">公司id</param>
+        /// <param name="employeeId">员工id</param>
+        /// <returns></returns>
+        [HttpDelete("{employeeId}")]
+        public async Task<IActionResult> DeleteEmployeeForCompany(Guid companyId, Guid employeeId)
+        {
+            //判断该公司是否存在
+            if (!await _companyRepository.CompanyExistsAsync(companyId))
+            {
+                return NotFound();
+            }
+
+            var employeeEntity = await _companyRepository.GetEmployeeAsync(companyId, employeeId);
+
+            //该公司没有这个员工
+            if (employeeEntity == null)
+            {
+                return NotFound();
+            }
+
+            await _companyRepository.GetEmployeeAsync(companyId, employeeId);
+            _companyRepository.DeleteEmployee(employeeEntity);
+            await _companyRepository.SaveAsync();
             return NoContent();
         }
     }
