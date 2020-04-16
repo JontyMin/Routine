@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Serialization;
 using Routine.Api.Data;
 using Routine.Api.Services;
 
@@ -36,7 +37,13 @@ namespace Routine.Api
                 setup.ReturnHttpNotAcceptable = true;
                 //setup.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
                 //setup.OutputFormatters.Insert(0,new XmlDataContractSerializerOutputFormatter());
-            }).AddXmlDataContractSerializerFormatters();
+            })
+                .AddNewtonsoftJson(setup =>
+                {
+                    setup.SerializerSettings.ContractResolver=
+                        new CamelCasePropertyNamesContractResolver();
+                })
+                .AddXmlDataContractSerializerFormatters();
             //支持格式更多 AddXmlDataContractSerializerFormatters
 
             //autoMapper

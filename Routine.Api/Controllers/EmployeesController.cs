@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Routine.Api.Entities;
 using Routine.Api.Models;
@@ -107,13 +108,13 @@ namespace Routine.Api.Controllers
         /// <param name="employee">更新信息</param>
         /// <returns></returns>
         [HttpPut("{employeeId}")]
-        public async Task<IActionResult> UpdateEmployeeForCompany(
+        public async Task<ActionResult<EmployeeDto>> UpdateEmployeeForCompany(
             Guid companyId, 
             Guid employeeId,
             EmployeeUpdateDto employee
             )
         {
-            //判断该员工是否存在
+            //判断该公司是否存在
             if (!await _companyRepository.CompanyExistsAsync(companyId))
             {
                 return NotFound();
@@ -124,7 +125,18 @@ namespace Routine.Api.Controllers
             //该公司没有这个员工
             if (employeeEntity==null)
             {
-                return NotFound();
+                //创建员工
+                var employeeToAddEntity = _mapper.Map<Employee>(employee);
+                employeeToAddEntity.Id = employeeId;
+                _companyRepository.AddEmployee(companyId, employeeToAddEntity);
+                await _companyRepository.SaveAsync();
+                var dtoToReturn = _mapper.Map<EmployeeDto>(employeeToAddEntity);
+
+                return CreatedAtRoute(nameof(GetEmployeeForCompany), new
+                {
+                    companyId,
+                    employeeId = dtoToReturn.Id
+                }, dtoToReturn);
             }
 
             //entity 转化为 updateDto
@@ -139,6 +151,47 @@ namespace Routine.Api.Controllers
 
             return NoContent();
 
+        }
+
+        [HttpPatch("{employeeId}")]
+        public async Task<IActionResult> PartiallyUpdateEmployeeForCompany(
+            Guid companyId,
+            Guid employeeId,
+            JsonPatchDocument<EmployeeUpdateDto> patchDocument)
+        {
+            //判断该公司是否存在
+            if (!await _companyRepository.CompanyExistsAsync(companyId))
+            {
+                return NotFound();
+            }
+
+            var employeeEntity = await _companyRepository.GetEmployeeAsync(companyId, employeeId);
+
+            //该公司没有这个员工
+            if (employeeEntity == null)
+            {
+                return NotFound();
+            }
+
+            var dtoToPatch = _mapper.Map<EmployeeUpdateDto>(employeeEntity);
+
+            //需要处理验证错误 
+            patchDocument.ApplyTo(dtoToPatch);
+
+            if (!TryValidateModel(dtoToPatch))
+            {
+                return UnprocessableEntity(ModelState);
+            }
+
+           
+
+            _mapper.Map(dtoToPatch, employeeEntity);
+
+            _companyRepository.UpdateEmployee(employeeEntity);
+
+            await _companyRepository.SaveAsync();
+
+            return NoContent();
         }
     }
 }
