@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Routine.Api.Data;
 using Routine.Api.Entities;
+using Routine.Api.Helpers;
 using Routine.Api.ResourceParameters;
 
 namespace Routine.Api.Services
@@ -19,20 +20,21 @@ namespace Routine.Api.Services
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
-        public async Task<IEnumerable<Company>> GetCompaniesAsync(CompanyDtoParameters companyDtoParameters)
+        public async Task<PagedList<Company>> GetCompaniesAsync(CompanyDtoParameters companyDtoParameters)
         {
             if (companyDtoParameters == null)
             {
                 throw new ArgumentNullException(nameof(companyDtoParameters));
             }
 
-            if (string.IsNullOrWhiteSpace(companyDtoParameters.CompanyName) &&
-                string.IsNullOrWhiteSpace(companyDtoParameters.SearchTerm))
-            {
-                return await _context.Companies.ToListAsync();
-            }
+            //if (string.IsNullOrWhiteSpace(companyDtoParameters.CompanyName) &&
+            //    string.IsNullOrWhiteSpace(companyDtoParameters.SearchTerm))
+            //{
+            //    return await _context.Companies.ToListAsync();
+            //}
 
             var queryExpression = _context.Companies as IQueryable<Company>;
+
             if (!string.IsNullOrWhiteSpace(companyDtoParameters.CompanyName))
             {
                 companyDtoParameters.CompanyName = companyDtoParameters.CompanyName.Trim();
@@ -47,7 +49,12 @@ namespace Routine.Api.Services
                     x.Introduction.Contains(companyDtoParameters.SearchTerm));
             }
 
-            return await queryExpression.ToListAsync();
+            //queryExpression = queryExpression.Skip(companyDtoParameters.PageSize * (companyDtoParameters.PageIndex - 1))
+            //    .Take(companyDtoParameters.PageSize);
+
+            //return await queryExpression.ToListAsync();
+            return await PagedList<Company>.Create(queryExpression, companyDtoParameters.PageIndex,
+                companyDtoParameters.PageSize);
         }
 
         public async Task<Company> GetCompanyAsync(Guid companyId)
