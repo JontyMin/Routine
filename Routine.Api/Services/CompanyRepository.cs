@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Routine.Api.Data;
 using Routine.Api.Entities;
 using Routine.Api.Helpers;
+using Routine.Api.Models;
 using Routine.Api.ResourceParameters;
 
 namespace Routine.Api.Services
@@ -15,10 +16,12 @@ namespace Routine.Api.Services
     public class CompanyRepository:ICompanyRepository
     {
         private readonly RoutineDbContext _context;
+        private readonly IPropertyMappingService _propertyMappingService;
 
-        public CompanyRepository(RoutineDbContext context)
+        public CompanyRepository(RoutineDbContext context,IPropertyMappingService propertyMappingService)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
+            _propertyMappingService = propertyMappingService ?? throw new ArgumentNullException(nameof(propertyMappingService));
         }
         public async Task<PagedList<Company>> GetCompaniesAsync(CompanyDtoParameters companyDtoParameters)
         {
@@ -53,6 +56,10 @@ namespace Routine.Api.Services
             //    .Take(companyDtoParameters.PageSize);
 
             //return await queryExpression.ToListAsync();
+
+            var mappingDictionary = _propertyMappingService.GetPropertyMapping<CompanyDto, Company>();
+            queryExpression = queryExpression.ApplySort(companyDtoParameters.OrderBy, mappingDictionary);
+
             return await PagedList<Company>.Create(queryExpression, companyDtoParameters.PageIndex,
                 companyDtoParameters.PageSize);
         }
@@ -126,42 +133,46 @@ namespace Routine.Api.Services
             return await _context.Companies.AnyAsync(x => x.Id == companyId);
         }
 
-        public async Task<IEnumerable<Employee>> GetEmployeeAsync(Guid companyId,string genderDisplay,string q)
+        public async Task<IEnumerable<Employee>> GetEmployeeAsync(Guid companyId,EmployeeDtoParameters parameters)
         {
             if (companyId==Guid.Empty)
             {
                 throw new ArgumentNullException(nameof(companyId));
             }
 
-            if (string.IsNullOrWhiteSpace(genderDisplay) && string.IsNullOrEmpty(q))
-            {
-                return await _context.Employees
-                    .Where(x => x.CompanyId == companyId)
-                    .OrderBy(x => x.EmployeeNo)
-                    .ToListAsync();
-            }
-
             var items = _context.Employees.Where(x => x.CompanyId == companyId);
 
-            if (!string.IsNullOrWhiteSpace(genderDisplay))
+            if (!string.IsNullOrWhiteSpace(parameters.Gender))
             {
-                genderDisplay = genderDisplay.Trim();
-                var gender = Enum.Parse<Gender>(genderDisplay);
+                parameters.Gender = parameters.Gender.Trim();
+                var gender = Enum.Parse<Gender>(parameters.Gender);
 
                 items = items.Where(x => x.Gender == gender);
                
             }
 
-            if (!string.IsNullOrWhiteSpace(q))
+            //搜索
+            if (!string.IsNullOrWhiteSpace(parameters.SearchTerm))
             {
-                q = q.Trim();
-                items = items.Where(x => x.EmployeeNo.Contains(q)
-                                         || x.FirstName.Contains(q)
-                                         || x.LastName.Contains(q));
+                parameters.SearchTerm = parameters.SearchTerm.Trim();
+                items = items.Where(x => x.EmployeeNo.Contains(parameters.SearchTerm)
+                                         || x.FirstName.Contains(parameters.SearchTerm)
+                                         || x.LastName.Contains(parameters.SearchTerm));
 
             }
 
-            return await items.OrderBy(x => x.EmployeeNo).ToListAsync();
+            //排序
+            //if (!string .IsNullOrWhiteSpace(parameters.OrderBy))
+            //{
+            //    if (parameters.OrderBy.ToLowerInvariant()=="name")
+            //    {
+            //        items = items.OrderBy(x => x.FirstName).ThenBy(x => x.LastName);
+            //    }
+            //}
+
+            var mappingDictionary = _propertyMappingService.GetPropertyMapping<EmployeeDto, Employee>();
+            items = items.ApplySort(parameters.OrderBy, mappingDictionary);
+            return await items.ToListAsync();
 
         }
 

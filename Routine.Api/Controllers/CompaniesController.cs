@@ -24,13 +24,13 @@ namespace Routine.Api.Controllers
     {
         private readonly ICompanyRepository _companyRepository;
         private readonly IMapper _mapper;
+        private readonly IPropertyMappingService _proertyMappingService;
 
-        public CompaniesController(ICompanyRepository companyRepository,IMapper mapper)
+        public CompaniesController(ICompanyRepository companyRepository,IMapper mapper,IPropertyMappingService proertyMappingService)
         {
             _companyRepository = companyRepository ?? throw new ArgumentNullException(nameof(companyRepository));
             _mapper= mapper  ?? throw new ArgumentNullException(nameof(mapper));
-            
-
+            _proertyMappingService = proertyMappingService ?? throw new ArgumentNullException(nameof(proertyMappingService));
         }
 
         /// <summary>
@@ -44,6 +44,10 @@ namespace Routine.Api.Controllers
             [FromQuery] CompanyDtoParameters company)
         {
             //throw new Exception("An Exception");
+            if (!_proertyMappingService.ValidMappingExistsFor<CompanyDto,Company>(company.OrderBy))
+            {
+                return BadRequest();
+            }
 
             var companies = await _companyRepository.GetCompaniesAsync(company);
 

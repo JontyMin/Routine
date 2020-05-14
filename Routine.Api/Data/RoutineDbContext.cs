@@ -28,6 +28,19 @@ namespace Routine.Api.Data
             modelBuilder.Entity<Company>()
                 .Property(x => x.Introduction)
                 .HasMaxLength(500);
+            modelBuilder.Entity<Company>()
+                .Property(x => x.Country)
+                .HasMaxLength(50);
+            modelBuilder.Entity<Company>()
+                .Property(x => x.Industry)
+                .HasMaxLength(500);
+            modelBuilder.Entity<Company>()
+                .Property(x => x.Product)
+                .HasMaxLength(100);
+            modelBuilder.Entity<Company>()
+                .Property(x => x.Introduction)
+                .HasMaxLength(500);
+
 
             modelBuilder.Entity<Employee>()
                 .Property(x => x.EmployeeNo)
@@ -54,16 +67,25 @@ namespace Routine.Api.Data
                     Id = Guid.Parse("48a7a966-4c78-4ce5-a300-435507b6cadc"),
                     Name ="Google",
                     Introduction = "Don not be evil",
+                    Country = "USA",
+                    Industry = "Software",
+                    Product = "Software"
                 },new Company
                 {
                     Id = Guid.Parse("7dcaf47b-bc1a-4b78-ae5c-ebf952ecf1eb"),
                     Name = "Microsoft",
                     Introduction = "Create Company",
+                    Country = "USA",
+                    Industry = "Internet",
+                    Product = "Software"
                 }, new Company
                 {
                     Id = Guid.Parse("34dc1695-7e1a-4687-824b-5af45aa92342"),
                     Name = "Apple",
                     Introduction = "no",
+                    Country = "USA",
+                    Industry = "Internet",
+                    Product = "Software"
                 });
 
             modelBuilder.Entity<Employee>()

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Routine.Api.Entities;
 using Routine.Api.Models;
+using Routine.Api.ResourceParameters;
 using Routine.Api.Services;
 
 namespace Routine.Api.Controllers
@@ -34,14 +35,15 @@ namespace Routine.Api.Controllers
         /// <returns></returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EmployeeDto>>> 
-            GetEmployeesForCompany(Guid companyId,[FromQuery(Name="gender")]string genderDisplay,string q)
+            GetEmployeesForCompany(Guid companyId,
+                [FromQuery]EmployeeDtoParameters parameters)
         {
             if (!await _companyRepository.CompanyExistsAsync(companyId))
             {
                 return NotFound();
             }
 
-            var employees = await _companyRepository.GetEmployeeAsync(companyId,genderDisplay,q);
+            var employees = await _companyRepository.GetEmployeeAsync(companyId,parameters);
             var employeesDto = _mapper.Map<IEnumerable<EmployeeDto>>(employees);
             return Ok(employeesDto);
         }

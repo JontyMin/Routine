@@ -55,6 +55,8 @@ namespace Routine.Api
                 options.UseSqlite("Data Source=routine.db");
                 //options.UseSqlServer("server=.;database=RoutineDb;uid=sa;pwd=123;");
             });
+
+            services.AddTransient<IPropertyMappingService, PropertyMappingService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
