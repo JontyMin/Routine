@@ -58,6 +58,7 @@ namespace Routine.Api.Controllers
             var nextLink = companies.HasNext
                 ? CreateCompaniesResourceUri(company, ResourceUriType.NextPage)
                 : null;
+
             var paginationMetadate = new
             {
                 totalCOunt = companies.TotalCount,
@@ -74,7 +75,7 @@ namespace Routine.Api.Controllers
             }));
 
             var companyDtos = _mapper.Map<IEnumerable<CompanyDto>>(companies);
-            return Ok(companyDtos);
+            return Ok(companyDtos.ShapeData(company.Fields));
         }
 
         /// <summary>
@@ -185,6 +186,7 @@ namespace Routine.Api.Controllers
                 case ResourceUriType.PreviousPage:
                     return Url.Link(nameof(GetCompanies), new
                     {
+                        fields=parameters.Fields,
                         pageIndex = parameters.PageIndex - 1,
                         pageSize = parameters.PageSize,
                         companyName = parameters.CompanyName,
@@ -193,6 +195,7 @@ namespace Routine.Api.Controllers
                 case ResourceUriType.NextPage:
                     return Url.Link(nameof(GetCompanies), new
                     {
+                        fields = parameters.Fields,
                         pageIndex = parameters.PageIndex + 1,
                         pageSize = parameters.PageSize,
                         companyName = parameters.CompanyName,
@@ -201,6 +204,7 @@ namespace Routine.Api.Controllers
                 default:
                     return Url.Link(nameof(GetCompanies), new
                     {
+                        fields = parameters.Fields,
                         pageIndex = parameters.PageIndex,
                         pageSize = parameters.PageSize,
                         companyName = parameters.CompanyName,

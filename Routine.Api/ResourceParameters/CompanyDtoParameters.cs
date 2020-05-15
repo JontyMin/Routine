@@ -13,6 +13,7 @@ namespace Routine.Api.ResourceParameters
         public int PageIndex { get; set; } = 1;
         public int _pageSize = 5;
         public string OrderBy { get; set; } = "CompanyName";
+        public string Fields { get; set; }
         public int PageSize
         {
             get => _pageSize;
