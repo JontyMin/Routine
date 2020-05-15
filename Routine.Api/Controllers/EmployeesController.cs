@@ -33,7 +33,7 @@ namespace Routine.Api.Controllers
         /// <param name="genderDisplay"></param>
         /// <param name="q"></param>
         /// <returns></returns>
-        [HttpGet]
+        [HttpGet(Name = nameof(GetEmployeesForCompany))]
         public async Task<ActionResult<IEnumerable<EmployeeDto>>> 
             GetEmployeesForCompany(Guid companyId,
                 [FromQuery]EmployeeDtoParameters parameters)
@@ -79,7 +79,7 @@ namespace Routine.Api.Controllers
         /// <param name="companyId"></param>
         /// <param name="employee"></param>
         /// <returns></returns>
-        [HttpPost]
+        [HttpPost(Name = nameof(CreateEmployeeForCompany))]
         public async Task<ActionResult<EmployeeDto>> 
             CreateEmployeeForCompany(Guid companyId,EmployeeAddDto employee)
         {

@@ -92,7 +92,7 @@ namespace Routine.Api.Controllers
         /// <param name="companyId"></param>
         /// <returns></returns>
         [HttpGet("{companyId}",Name = nameof(GetCompany))]
-        public async Task<IActionResult> GetCompany(Guid companyId)
+        public async Task<IActionResult> GetCompany(Guid companyId,string fields)
         {
             //判断是否存在
             //var exist = await _companyRepository.CompanyExistsAsync(companyId);
@@ -100,14 +100,25 @@ namespace Routine.Api.Controllers
             //{
             //    return NotFound();
             //}
-
+            if (!_propertyCheckerService.TypeHasProperties<CompanyDto>(fields))
+            {
+                return BadRequest();
+            }
             var company = await _companyRepository.GetCompanyAsync(companyId);
             //如果找不到 返回404
             if (company==null)
             {
                 return NotFound();
             }
-            return Ok(_mapper.Map<CompanyDto>(company));
+
+            var links = CreateLinksForCompany(companyId, fields);
+
+            var linkedDict = _mapper.Map<CompanyDto>(company).ShapeData(fields)
+                as IDictionary<string ,object>;
+
+            linkedDict.Add("links", links);
+
+            return Ok(linkedDict);
         }
 
         /// <summary>
@@ -125,9 +136,16 @@ namespace Routine.Api.Controllers
             await _companyRepository.SaveAsync();
 
             var retuenDto = _mapper.Map<CompanyDto>(entity);
+
+            var links = CreateLinksForCompany(retuenDto.Id, null);
+
+            var linkedDict = retuenDto.ShapeData(null)
+                as IDictionary<string,object>;
+
+            linkedDict.Add("links",links);
             
             //返回一个路径，获取当前添加的资源
-            return CreatedAtRoute(nameof(GetCompany), new {companyId = retuenDto.Id}, retuenDto);
+            return CreatedAtRoute(nameof(GetCompany), new {companyId = linkedDict["Id"]}, retuenDto);
         }
 
 
@@ -175,7 +193,27 @@ namespace Routine.Api.Controllers
             return Ok(dtoToReturn);
         }
 
+        /// <summary>
+        /// 根据id删除公司
+        /// </summary>
+        /// <param name="companyId"></param>
+        /// <returns></returns>
+        [HttpDelete("{companyId}",Name = nameof(DeleteCompany))]
+        public async Task<IActionResult> DeleteCompany(Guid companyId)
+        {
+            var companyEntity = await _companyRepository.GetCompanyAsync(companyId);
 
+            if (companyEntity==null)
+            {
+                return NotFound();
+            }
+
+            await _companyRepository.GetEmployeeAsync(companyId, null);
+            _companyRepository.DeleteCompany(companyEntity);
+            await _companyRepository.SaveAsync();
+            return NoContent();
+
+        }
         /// <summary>
         /// option请求 获取api的通信信息
         /// </summary>
@@ -219,6 +257,40 @@ namespace Routine.Api.Controllers
                         searchTerm = parameters.SearchTerm
                     });
             }
+        }
+
+        private IEnumerable<LinkDto> CreateLinksForCompany(Guid companyId, string fields)
+        {
+            var links = new List<LinkDto>();
+
+            if (string.IsNullOrWhiteSpace(fields))
+            {
+                links.Add(new LinkDto(Url.Link(nameof(GetCompany),
+                    new{companyId}),
+                    "self",
+                    "GET"));
+            }
+            else
+            {
+                links.Add(new LinkDto(Url.Link(nameof(GetCompany),
+                        new { companyId ,fields}),
+                    "self",
+                    "GET"));
+            }
+
+            links.Add(new LinkDto(Url.Link(nameof(DeleteCompany),
+                    new { companyId}),
+                "delete_company",
+                "DELETE"));
+            links.Add(new LinkDto(Url.Link(nameof(EmployeesController.CreateEmployeeForCompany),
+                        new { companyId }),
+                    "create_employee_for_company",
+                    "POST"));
+            links.Add(new LinkDto(Url.Link(nameof(EmployeesController.GetEmployeesForCompany),
+                    new { companyId }),
+                "employee",
+                "GET"));
+            return links;
         }
     }
 }
