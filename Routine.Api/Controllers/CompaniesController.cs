@@ -59,13 +59,13 @@ namespace Routine.Api.Controllers
 
             var companies = await _companyRepository.GetCompaniesAsync(company);
 
-            var perviousLink = companies.HasPrevious
-                ? CreateCompaniesResourceUri(company, ResourceUriType.PreviousPage)
-                : null;
+            //var perviousLink = companies.HasPrevious
+            //    ? CreateCompaniesResourceUri(company, ResourceUriType.PreviousPage)
+            //    : null;
 
-            var nextLink = companies.HasNext
-                ? CreateCompaniesResourceUri(company, ResourceUriType.NextPage)
-                : null;
+            //var nextLink = companies.HasNext
+            //    ? CreateCompaniesResourceUri(company, ResourceUriType.NextPage)
+            //    : null;
 
             var paginationMetadate = new
             {
@@ -73,8 +73,8 @@ namespace Routine.Api.Controllers
                 pageSize = companies.PageSize,
                 currentPage = companies.CurrentPage,
                 totalPage = companies.TotalPages,
-                perviousLink,
-                nextLink
+                //perviousLink,
+                //nextLink
             };
 
             Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(paginationMetadate, new JsonSerializerOptions
@@ -83,7 +83,22 @@ namespace Routine.Api.Controllers
             }));
 
             var companyDtos = _mapper.Map<IEnumerable<CompanyDto>>(companies);
-            return Ok(companyDtos.ShapeData(company.Fields));
+            var shapedData = companyDtos.ShapeData(company.Fields);
+            var links = CreateLinksForCompany(company,companies.HasPrevious,companies.HasNext);
+            var shapedCompaniesWithLinks = shapedData.Select(c =>
+            {
+                var companyDict = c as IDictionary<string, object>;
+                var companyLinks = CreateLinksForCompany((Guid) companyDict["Id"], null);
+                return companyDict;
+            });
+
+            var linkedCollectionResource = new
+            {
+                value = shapedCompaniesWithLinks,
+                links
+            };
+
+            return Ok(linkedCollectionResource);
         }
 
         /// <summary>
@@ -126,7 +141,7 @@ namespace Routine.Api.Controllers
         /// </summary>
         /// <param name="company"></param>
         /// <returns></returns>
-        [HttpPost]
+        [HttpPost(Name = nameof(CreateCompany))]
         public async Task<ActionResult<CompanyDto>> CreateCompany([FromBody]CompanyAddDto company)
         {
             //xml格式 Introduction null
@@ -247,6 +262,7 @@ namespace Routine.Api.Controllers
                         companyName = parameters.CompanyName,
                         searchTerm = parameters.SearchTerm
                     });
+                case ResourceUriType.CurrentPage:
                 default:
                     return Url.Link(nameof(GetCompanies), new
                     {
@@ -290,6 +306,30 @@ namespace Routine.Api.Controllers
                     new { companyId }),
                 "employee",
                 "GET"));
+            return links;
+        }
+
+        private IEnumerable<LinkDto> CreateLinksForCompany(CompanyDtoParameters parameters,bool hasPrevious,bool hasNext)
+        {
+            var links = new List<LinkDto>();
+
+            links.Add(new LinkDto(CreateCompaniesResourceUri(parameters,ResourceUriType.CurrentPage),
+                "self"
+                ,"GET"));
+
+            if (hasPrevious)
+            {
+                links.Add(new LinkDto(CreateCompaniesResourceUri(parameters, ResourceUriType.PreviousPage),
+                    "previous_page"
+                    , "GET"));
+            }
+
+            if (hasNext)
+            {
+                links.Add(new LinkDto(CreateCompaniesResourceUri(parameters, ResourceUriType.NextPage),
+                    "next_page"
+                    , "GET"));
+            }
             return links;
         }
     }
