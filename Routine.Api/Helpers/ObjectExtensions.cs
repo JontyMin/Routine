@@ -42,7 +42,8 @@ namespace Routine.Api.Helpers
                     }
                 }
             }
-            return null;
+
+            return expandoObj;
         }
     }
 }

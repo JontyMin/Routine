@@ -25,12 +25,18 @@ namespace Routine.Api.Controllers
         private readonly ICompanyRepository _companyRepository;
         private readonly IMapper _mapper;
         private readonly IPropertyMappingService _proertyMappingService;
+        private readonly IPropertyCheckerService _propertyCheckerService;
 
-        public CompaniesController(ICompanyRepository companyRepository,IMapper mapper,IPropertyMappingService proertyMappingService)
+        public CompaniesController(
+            ICompanyRepository companyRepository,
+            IMapper mapper,
+            IPropertyMappingService proertyMappingService,
+            IPropertyCheckerService propertyCheckerService)
         {
             _companyRepository = companyRepository ?? throw new ArgumentNullException(nameof(companyRepository));
             _mapper= mapper  ?? throw new ArgumentNullException(nameof(mapper));
             _proertyMappingService = proertyMappingService ?? throw new ArgumentNullException(nameof(proertyMappingService));
+            _propertyCheckerService = propertyCheckerService ?? throw new ArgumentNullException(nameof(propertyCheckerService)); ;
         }
 
         /// <summary>
@@ -48,6 +54,8 @@ namespace Routine.Api.Controllers
             {
                 return BadRequest();
             }
+
+
 
             var companies = await _companyRepository.GetCompaniesAsync(company);
 
