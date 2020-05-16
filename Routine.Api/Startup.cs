@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Marvin.Cache.Headers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -31,12 +32,27 @@ namespace Routine.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddHttpCacheHeaders(expires =>
+            {
+                expires.MaxAge = 60;
+                expires.CacheLocation = CacheLocation.Private;
+            }, validation =>
+            {
+                validation.MustRevalidate = true;
+            });
+            //缓存
+            services.AddResponseCaching();
+
             services.AddControllers(setup =>
             {
                 //添加xml格式数据
                 setup.ReturnHttpNotAcceptable = true;
                 //setup.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
                 //setup.OutputFormatters.Insert(0,new XmlDataContractSerializerOutputFormatter());
+                setup.CacheProfiles.Add("120sCacheProfile",new CacheProfile
+                {
+                    Duration = 120
+                });
             })
                 .AddNewtonsoftJson(setup =>
                 {
@@ -46,6 +62,13 @@ namespace Routine.Api
                 .AddXmlDataContractSerializerFormatters();
             //支持格式更多 AddXmlDataContractSerializerFormatters
 
+            services.Configure<MvcOptions>(config =>
+            {
+                var newtonSoftJsonOutputFormatter =
+                    config.OutputFormatters.OfType<NewtonsoftJsonInputFormatter>()?.FirstOrDefault();
+
+                newtonSoftJsonOutputFormatter?.SupportedMediaTypes.Add("application/vnd.company.hateoas+json");
+            });
             //autoMapper
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
@@ -80,6 +103,10 @@ namespace Routine.Api
             }
 
             app.UseCors();
+
+            app.UseResponseCaching();
+
+            app.UseHttpCacheHeaders();
 
             app.UseRouting();
 

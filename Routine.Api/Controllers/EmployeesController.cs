@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Marvin.Cache.Headers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +16,10 @@ namespace Routine.Api.Controllers
 {
     [Route("api/Companies/{companyId}/[controller]")]
     [ApiController]
+    //[ResponseCache(CacheProfileName = "120sCacheProfile")]
+
+    [HttpCacheExpiration(CacheLocation = CacheLocation.Public)]
+    //[HttpCacheValidation(MustRevalidate = false)]
     public class EmployeesController : ControllerBase
     {
         private readonly ICompanyRepository _companyRepository;
@@ -55,6 +60,7 @@ namespace Routine.Api.Controllers
         /// <param name="employeeId"></param>
         /// <returns></returns>
         [HttpGet("{employeeId}",Name=nameof(GetEmployeeForCompany))]
+        //[ResponseCache(Duration = 60)]
         public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetEmployeeForCompany(Guid companyId,Guid employeeId)
         {
             if (!await _companyRepository.CompanyExistsAsync(companyId))
@@ -114,7 +120,7 @@ namespace Routine.Api.Controllers
             Guid companyId, 
             Guid employeeId,
             EmployeeUpdateDto employee
-            )
+            ) 
         {
             //判断该公司是否存在
             if (!await _companyRepository.CompanyExistsAsync(companyId))

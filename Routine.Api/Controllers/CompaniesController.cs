@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.Net.Http.Headers;
 using Routine.Api.Entities;
 using Routine.Api.Helpers;
 using Routine.Api.Models;
@@ -107,8 +109,13 @@ namespace Routine.Api.Controllers
         /// <param name="companyId"></param>
         /// <returns></returns>
         [HttpGet("{companyId}",Name = nameof(GetCompany))]
-        public async Task<IActionResult> GetCompany(Guid companyId,string fields)
+        public async Task<IActionResult> GetCompany(Guid companyId,string fields,
+            [FromHeader(Name = "Accept")] string mediaType)
         {
+            if (!MediaTypeHeaderValue.TryParse(mediaType,out MediaTypeHeaderValue parsedMediaType))
+            {
+                return BadRequest();
+            }
             //判断是否存在
             //var exist = await _companyRepository.CompanyExistsAsync(companyId);
             //if (!exist)
@@ -126,14 +133,19 @@ namespace Routine.Api.Controllers
                 return NotFound();
             }
 
-            var links = CreateLinksForCompany(companyId, fields);
+            if (parsedMediaType.MediaType=="application.company.hateoas+json")
+            {
+                var links = CreateLinksForCompany(companyId, fields);
 
-            var linkedDict = _mapper.Map<CompanyDto>(company).ShapeData(fields)
+                var linkedDict = _mapper.Map<CompanyDto>(company).ShapeData(fields)
                 as IDictionary<string ,object>;
 
-            linkedDict.Add("links", links);
+                linkedDict.Add("links", links);
 
-            return Ok(linkedDict);
+                return Ok(linkedDict);
+            }
+
+            return Ok(_mapper.Map<CompanyDto>(company));
         }
 
         /// <summary>
